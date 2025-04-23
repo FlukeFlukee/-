@@ -12,28 +12,25 @@
     <h1 class="text-3xl font-bold text-green-600 mb-6">🏸 ตีแบดวันเสาร์เหงาได้ไง</h1>
 
     <form id="mainForm" class="space-y-4 bg-white shadow-md p-6 rounded-xl">
-      <div id="playerInputs" class="space-y-2">
-        <!-- Input player rows will go here -->
+      <div id="groupInputs" class="space-y-4">
+        <!-- กลุ่มแรก -->
       </div>
-      <button type="button" onclick="addPlayer()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-        ➕ เพิ่มผู้เล่น
+      <button type="button" onclick="addGroup()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        ➕ เพิ่มกลุ่มผู้เล่น
       </button>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
         <div>
           <label class="block font-medium">💰 ราคาคอร์ทต่อชั่วโมง</label>
-          <input type="number" step="0.01" id="court_rate" required
-            class="w-full mt-1 p-2 border rounded" />
+          <input type="number" step="0.01" id="court_rate" required class="w-full mt-1 p-2 border rounded" />
         </div>
         <div>
           <label class="block font-medium">🏸 ราคาลูกแบด</label>
-          <input type="number" step="0.01" id="shuttle_price" required
-            class="w-full mt-1 p-2 border rounded" />
+          <input type="number" step="0.01" id="shuttle_price" required class="w-full mt-1 p-2 border rounded" />
         </div>
         <div>
           <label class="block font-medium">📦 จำนวนลูกแบดที่ใช้</label>
-          <input type="number" id="shuttle_used" required
-            class="w-full mt-1 p-2 border rounded" />
+          <input type="number" id="shuttle_used" required class="w-full mt-1 p-2 border rounded" />
         </div>
       </div>
 
@@ -51,49 +48,60 @@
   </div>
 
   <script>
-    let players = [];
-
-    function addPlayer() {
+    function addGroup() {
       const div = document.createElement("div");
-      div.className = "flex gap-2";
+      div.className = "grid grid-cols-1 md:grid-cols-3 gap-4 items-end";
       div.innerHTML = `
-        <input type="text" placeholder="ชื่อ" class="name flex-1 p-2 border rounded" />
-        <input type="number" step="0.1" placeholder="ชั่วโมง" class="hours w-28 p-2 border rounded" />
+        <div>
+          <label class="block font-medium">⏱ ชั่วโมง</label>
+          <input type="number" step="0.1" class="group-hours w-full p-2 border rounded" required />
+        </div>
+        <div>
+          <label class="block font-medium">👥 จำนวนคน</label>
+          <input type="number" class="group-people w-full p-2 border rounded" required />
+        </div>
+        <div>
+          <label class="block font-medium">📝 ชื่อผู้เล่น/กลุ่ม</label>
+          <input type="text" class="group-names w-full p-2 border rounded" required />
+        </div>
       `;
-      document.getElementById("playerInputs").appendChild(div);
+      document.getElementById("groupInputs").appendChild(div);
     }
 
     function clearData() {
-      document.getElementById("playerInputs").innerHTML = "";
+      document.getElementById("groupInputs").innerHTML = "";
       document.getElementById("resultSection").innerHTML = "";
-      players = [];
-      addPlayer();
+      addGroup();
     }
 
     document.getElementById("mainForm").addEventListener("submit", function (e) {
       e.preventDefault();
 
-      const names = document.querySelectorAll(".name");
-      const hours = document.querySelectorAll(".hours");
-      players = [];
+      let players = [];
 
-      for (let i = 0; i < names.length; i++) {
-        if (names[i].value && hours[i].value) {
-          players.push({
-            name: names[i].value,
-            hours: parseFloat(hours[i].value)
-          });
+      const hoursList = document.querySelectorAll(".group-hours");
+      const peopleList = document.querySelectorAll(".group-people");
+      const namesList = document.querySelectorAll(".group-names");
+
+      for (let i = 0; i < hoursList.length; i++) {
+        const hours = parseFloat(hoursList[i].value);
+        const people = parseInt(peopleList[i].value);
+        const nameInput = namesList[i].value.trim();
+
+        if (!nameInput) {
+          alert(`กลุ่มที่ ${i + 1}: กรุณากรอกชื่อกลุ่มหรือชื่อผู้เล่น`);
+          return;
         }
+
+        players.push({ name: nameInput, hours, people });
       }
 
       const courtRate = parseFloat(document.getElementById("court_rate").value);
       const shuttlePrice = parseFloat(document.getElementById("shuttle_price").value);
       const shuttleUsed = parseInt(document.getElementById("shuttle_used").value);
 
-      // ค่าลูกแบดเฉลี่ยตามสัดส่วนชั่วโมงเหมือนเดิม
-      const totalHours = players.reduce((sum, p) => sum + p.hours, 0);
-      const totalShuttle = shuttlePrice * shuttleUsed;
-      const totalCourtFee = courtRate * totalHours;
+      const totalHourPerson = players.reduce((sum, p) => sum + p.hours * p.people, 0);
+      const totalShuttleFee = shuttlePrice * shuttleUsed;
 
       let html = `
         <div class="bg-white shadow-md rounded-xl p-6">
@@ -104,33 +112,37 @@
                 <tr>
                   <th class="px-4 py-2">ชื่อ</th>
                   <th>ชั่วโมง</th>
+                  <th>จำนวนคน</th>
                   <th>ค่าคอร์ท</th>
                   <th>ค่าลูกแบด</th>
                   <th>รวมทั้งหมด</th>
+                  <th>ราคาคนละกี่บาท</th>
                 </tr>
               </thead>
               <tbody>
       `;
 
       let total = 0;
-
       players.forEach(p => {
-        // ค่าคอร์ท = courtRate * ชั่วโมงของคนนั้น / จำนวนคนที่เล่น
-        const courtFee = (p.hours * courtRate) / players.length;
-        const shuttleFee = (p.hours / totalHours) * totalShuttle;
+        const courtFee = (courtRate / totalHourPerson) * (p.hours * p.people);
+        const shuttleFee = ((p.hours * p.people) / totalHourPerson) * totalShuttleFee;
         const totalFee = courtFee + shuttleFee;
+        const pricePerPerson = totalFee / p.people;
         total += totalFee;
 
         html += `
           <tr class="border-t">
             <td class="px-4 py-2">${p.name}</td>
             <td>${p.hours}</td>
+            <td>${p.people}</td>
             <td>${courtFee.toFixed(2)}</td>
             <td>${shuttleFee.toFixed(2)}</td>
             <td class="font-semibold text-blue-600">${totalFee.toFixed(2)}</td>
+            <td class="text-purple-600">${pricePerPerson.toFixed(2)}</td>
           </tr>
         `;
       });
+
       html += `
               </tbody>
             </table>
@@ -142,8 +154,10 @@
       document.getElementById("resultSection").innerHTML = html;
     });
 
-    // Initial player
-    addPlayer();
+
+
+    // เริ่มต้นด้วย 1 กลุ่ม
+    addGroup();
   </script>
 </body>
 </html>
