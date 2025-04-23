@@ -8,39 +8,48 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-  <div class="max-w-3xl mx-auto p-6">
+  <div class="max-w-4xl mx-auto p-6">
     <h1 class="text-3xl font-bold text-green-600 mb-6">🏸 ตีแบดวันเสาร์เหงาได้ไง</h1>
 
-    <form id="mainForm" class="space-y-4 bg-white shadow-md p-6 rounded-xl">
-      <div id="groupInputs" class="space-y-4">
-        <!-- กลุ่มแรก -->
-      </div>
-      <button type="button" onclick="addGroup()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-        ➕ เพิ่มกลุ่มผู้เล่น
-      </button>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6">
-        <div>
-          <label class="block font-medium">💰 ราคาคอร์ทต่อชั่วโมง</label>
-          <input type="number" step="0" id="court_rate" required class="w-full mt-1 p-2 border rounded" />
+    <form id="mainForm" class="space-y-6 bg-white shadow-md p-6 rounded-xl">
+      
+      <!-- คอร์ทชั่วโมง -->
+      <div>
+        <h2 class="text-lg font-semibold mb-2">📆 ข้อมูลการใช้คอร์ท</h2>
+        <div id="courtTimeInputs" class="space-y-2">
+          <!-- เพิ่มช่วงเวลา -->
         </div>
-        <div>
-          <label class="block font-medium">🏟 จำนวนคอร์ท</label>
-          <input type="number" id="court_count" value="1" min="1" required class="w-full mt-1 p-2 border rounded" />
-        </div>
-        <div>
-          <label class="block font-medium">🏸 ราคาลูกแบด</label>
-          <input type="number" step="0.01" id="shuttle_price" required class="w-full mt-1 p-2 border rounded" />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block font-medium">📦 จำนวนลูกแบดที่ใช้</label>
-          <input type="number" id="shuttle_used" required class="w-full mt-1 p-2 border rounded" />
+        <button type="button" onclick="addCourtTime()" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mt-2">
+          ➕ เพิ่มช่วงเวลา
+        </button>
+        <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-medium">💰 ราคาคอร์ทต่อชั่วโมง</label>
+            <input type="number" step="0.01" id="court_rate" required class="w-full mt-1 p-2 border rounded" />
+          </div>
+          <div>
+            <label class="block font-medium">🏸 ราคาลูกแบด</label>
+            <input type="number" step="0.01" id="shuttle_price" required class="w-full mt-1 p-2 border rounded" />
+          </div>
+          <div>
+            <label class="block font-medium">📦 จำนวนลูกแบดที่ใช้</label>
+            <input type="number" id="shuttle_used" required class="w-full mt-1 p-2 border rounded" />
+          </div>
         </div>
       </div>
 
+      <!-- กลุ่มผู้เล่น -->
+      <div>
+        <h2 class="text-lg font-semibold mb-2">👥 กลุ่มผู้เล่น</h2>
+        <div id="groupInputs" class="space-y-4">
+          <!-- กลุ่มผู้เล่น -->
+        </div>
+        <button type="button" onclick="addGroup()" class="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600">
+          ➕ เพิ่มกลุ่มผู้เล่น
+        </button>
+      </div>
+
+      <!-- ปุ่ม -->
       <div class="pt-4 space-x-2">
         <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
           ✅ คำนวณ
@@ -51,16 +60,33 @@
       </div>
     </form>
 
+    <!-- แสดงผล -->
     <div id="resultSection" class="mt-8"></div>
   </div>
 
   <script>
+    function addCourtTime() {
+      const div = document.createElement("div");
+      div.className = "grid grid-cols-1 sm:grid-cols-3 gap-4";
+      div.innerHTML = `
+        <div>
+          <label class="block font-medium">🕒 จำนวนชั่วโมง</label>
+          <input type="number" step="0.1" class="court-hours w-full p-2 border rounded" required />
+        </div>
+        <div>
+          <label class="block font-medium">🏟 จำนวนคอร์ท</label>
+          <input type="number" class="court-count w-full p-2 border rounded" required />
+        </div>
+      `;
+      document.getElementById("courtTimeInputs").appendChild(div);
+    }
+
     function addGroup() {
       const div = document.createElement("div");
       div.className = "grid grid-cols-1 md:grid-cols-3 gap-4 items-end";
       div.innerHTML = `
         <div>
-          <label class="block font-medium">⏱ ชั่วโมง</label>
+          <label class="block font-medium">⏱ ชั่วโมงที่เล่น</label>
           <input type="number" step="0.1" class="group-hours w-full p-2 border rounded" required />
         </div>
         <div>
@@ -77,15 +103,17 @@
 
     function clearData() {
       document.getElementById("groupInputs").innerHTML = "";
+      document.getElementById("courtTimeInputs").innerHTML = "";
       document.getElementById("resultSection").innerHTML = "";
       addGroup();
+      addCourtTime();
     }
 
     document.getElementById("mainForm").addEventListener("submit", function (e) {
       e.preventDefault();
 
-      let players = [];
-
+      // กลุ่มผู้เล่น
+      const players = [];
       const hoursList = document.querySelectorAll(".group-hours");
       const peopleList = document.querySelectorAll(".group-people");
       const namesList = document.querySelectorAll(".group-names");
@@ -93,23 +121,34 @@
       for (let i = 0; i < hoursList.length; i++) {
         const hours = parseFloat(hoursList[i].value);
         const people = parseInt(peopleList[i].value);
-        const nameInput = namesList[i].value.trim();
-
-        if (!nameInput) {
-          alert(`กลุ่มที่ ${i + 1}: กรุณากรอกชื่อกลุ่มหรือชื่อผู้เล่น`);
+        const name = namesList[i].value.trim();
+        if (!name) {
+          alert(`กรุณากรอกชื่อผู้เล่น/กลุ่มที่ ${i + 1}`);
           return;
         }
+        players.push({ name, hours, people });
+      }
 
-        players.push({ name: nameInput, hours, people });
+      // เวลาและคอร์ท
+      const courtTimes = document.querySelectorAll(".court-hours");
+      const courtCounts = document.querySelectorAll(".court-count");
+      let totalCourtCost = 0;
+      let totalCourtHours = 0;
+
+      for (let i = 0; i < courtTimes.length; i++) {
+        const hrs = parseFloat(courtTimes[i].value);
+        const courts = parseInt(courtCounts[i].value);
+        totalCourtCost += hrs * courts;
+        totalCourtHours += hrs;
       }
 
       const courtRate = parseFloat(document.getElementById("court_rate").value);
-      const courtCount = parseInt(document.getElementById("court_count").value);
+      const courtFeeTotal = totalCourtCost * courtRate;
       const shuttlePrice = parseFloat(document.getElementById("shuttle_price").value);
       const shuttleUsed = parseInt(document.getElementById("shuttle_used").value);
+      const shuttleFeeTotal = shuttlePrice * shuttleUsed;
 
       const totalHourPerson = players.reduce((sum, p) => sum + p.hours * p.people, 0);
-      const totalShuttleFee = shuttlePrice * shuttleUsed;
 
       let html = `
         <div class="bg-white shadow-md rounded-xl p-6">
@@ -124,19 +163,20 @@
                   <th>ค่าคอร์ท</th>
                   <th>ค่าลูกแบด</th>
                   <th>รวมทั้งหมด</th>
-                  <th>ราคาคนละกี่บาท</th>
+                  <th>ราคาคนละ</th>
                 </tr>
               </thead>
               <tbody>
       `;
 
-      let total = 0;
+      let grandTotal = 0;
       players.forEach(p => {
-        const courtFee = (courtRate * courtCount / totalHourPerson) * (p.hours * p.people);
-        const shuttleFee = ((p.hours * p.people) / totalHourPerson) * totalShuttleFee;
+        const portion = (p.hours * p.people) / totalHourPerson;
+        const courtFee = portion * courtFeeTotal;
+        const shuttleFee = portion * shuttleFeeTotal;
         const totalFee = courtFee + shuttleFee;
         const pricePerPerson = totalFee / p.people;
-        total += totalFee;
+        grandTotal += totalFee;
 
         html += `
           <tr class="border-t">
@@ -155,15 +195,16 @@
               </tbody>
             </table>
           </div>
-          <p class="text-right mt-4 text-lg font-bold">รวมทั้งหมด: <span class="text-green-700">${total.toFixed(2)} บาท</span></p>
+          <p class="text-right mt-4 text-lg font-bold text-green-700">รวมทั้งหมด: ${grandTotal.toFixed(2)} บาท</p>
         </div>
       `;
 
       document.getElementById("resultSection").innerHTML = html;
     });
 
-    // เริ่มต้นด้วย 1 กลุ่ม
+    // เริ่มต้น
     addGroup();
+    addCourtTime();
   </script>
 </body>
 </html>
