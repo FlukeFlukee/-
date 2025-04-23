@@ -19,15 +19,22 @@
         ➕ เพิ่มกลุ่มผู้เล่น
       </button>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6">
         <div>
           <label class="block font-medium">💰 ราคาคอร์ทต่อชั่วโมง</label>
-          <input type="number" step="0.01" id="court_rate" required class="w-full mt-1 p-2 border rounded" />
+          <input type="number" step="0" id="court_rate" required class="w-full mt-1 p-2 border rounded" />
+        </div>
+        <div>
+          <label class="block font-medium">🏟 จำนวนคอร์ท</label>
+          <input type="number" id="court_count" value="1" min="1" required class="w-full mt-1 p-2 border rounded" />
         </div>
         <div>
           <label class="block font-medium">🏸 ราคาลูกแบด</label>
           <input type="number" step="0.01" id="shuttle_price" required class="w-full mt-1 p-2 border rounded" />
         </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block font-medium">📦 จำนวนลูกแบดที่ใช้</label>
           <input type="number" id="shuttle_used" required class="w-full mt-1 p-2 border rounded" />
@@ -97,6 +104,7 @@
       }
 
       const courtRate = parseFloat(document.getElementById("court_rate").value);
+      const courtCount = parseInt(document.getElementById("court_count").value);
       const shuttlePrice = parseFloat(document.getElementById("shuttle_price").value);
       const shuttleUsed = parseInt(document.getElementById("shuttle_used").value);
 
@@ -124,7 +132,7 @@
 
       let total = 0;
       players.forEach(p => {
-        const courtFee = (courtRate / totalHourPerson) * (p.hours * p.people);
+        const courtFee = (courtRate * courtCount / totalHourPerson) * (p.hours * p.people);
         const shuttleFee = ((p.hours * p.people) / totalHourPerson) * totalShuttleFee;
         const totalFee = courtFee + shuttleFee;
         const pricePerPerson = totalFee / p.people;
@@ -153,8 +161,6 @@
 
       document.getElementById("resultSection").innerHTML = html;
     });
-
-
 
     // เริ่มต้นด้วย 1 กลุ่ม
     addGroup();
